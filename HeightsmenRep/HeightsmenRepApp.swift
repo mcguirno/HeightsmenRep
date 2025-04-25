@@ -11,7 +11,7 @@ import SwiftUI
 struct HeightsmenRepApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SongListView()
         }
     }
 }
