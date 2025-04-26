@@ -7,42 +7,100 @@
 
 import SwiftUI
 import SwiftData
-struct SongListView: View {
-    @State private var songVM = SongViewModel()
-    @State private var sheetIsPresented = false
-    var body: some View {
-        NavigationStack {
-            List(songVM.songs) { song in
-                VStack(alignment: .leading) {
-                    Text(song.title)
-                        .font(.title)
-                        .lineLimit(1)
-                }
-            }
-            .listStyle(.plain)
-            .navigationTitle("Heightsmen Repretoire:")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        sheetIsPresented.toggle()
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-        }
-        .task {
-            await songVM.getData()
-        }
-        //        .sheet(isPresented: $sheetIsPresented) {
-        //            NavigationStack {
-        //                SongDetailView(song: Song())
-        //            }
-        //        }
-    }
+
+enum SortOption: String, CaseIterable {
+    case asEntered = "As Entered"
+    case alphabetical = "A-Z"
+    case byYear = "Date"
+    case current = "Current"
 }
 
-#Preview {
-    SongListView()
+
+struct SortedSongListView: View {
+    @Query var songs: [Song]
+    @State private var songVM = SongViewModel()
+    @State private var sheetIsPresented = false
+    @Environment(\.modelContext) var modelContext
+    let sortSelection: SortOption
+    
+    init(sortSelection: SortOption) {
+        self.sortSelection = sortSelection
+        switch self.sortSelection {
+        case .asEntered:
+            _songs = Query()
+        case .alphabetical:
+            _songs = Query(sort: \.title)
+        case .byYear:
+            _songs = Query(sort: \.year)
+        case .current:
+            _songs = Query(filter: #Predicate {$0.year >= "2025" })
+        }
+    }
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(songs) { song in
+                    NavigationLink {
+                        SongDetailView(song: song)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(song.title)
+                                .font(.title)
+                                .lineLimit(1)
+                            Text(song.year)
+                                .font(.title2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .navigationTitle("Heightsmen Repretoire:")
+            }
+            .task {
+                songVM.loadJSONFromAssets(context: modelContext)
+            }
+            .sheet(isPresented: $sheetIsPresented) {
+                NavigationStack {
+                    SongDetailView(song: Song(year: "", title: "", opb: "", soloistFirst: "", soloistLast: ""))
+                }
+            }
+        }
+    }
 }
+    
+    struct SongListView: View {
+        @State private var sheetIsPresented = false
+        @State private var sortSelection: SortOption = .asEntered
+        var body: some View {
+            NavigationStack {
+                SortedSongListView(sortSelection: sortSelection)
+                    .navigationTitle("Heightsmen Repertoire")
+                    .navigationBarTitleDisplayMode(.automatic)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                sheetIsPresented.toggle()
+                            } label: {
+                                Image(systemName: "plus")
+                            }
+                        }
+                        ToolbarItem(placement: .bottomBar) {
+                            Picker("", selection: $sortSelection) {
+                                ForEach(SortOption.allCases, id: \.self) { sortOrder in
+                                    Text(sortOrder.rawValue)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                    }
+            }
+        }
+    }
+    
+    #Preview {
+        NavigationStack {
+            SongListView()
+                .modelContainer(SongViewModel.preview)
+        }
+    }
 

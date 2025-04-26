@@ -8,19 +8,27 @@
 import Foundation
 import SwiftData
 
-struct Song: Codable, Identifiable {
-    let id = UUID().uuidString
+struct SongJSON: Codable {
+    let year: String
+    let title: String
+    let opb: String
+    let soloistFirst: String
+    let soloistLast: String
+}
+
+@Model
+class Song {
     var year: String
     var title: String
     var opb: String
     var soloistFirst: String
     var soloistLast: String
     
-    enum CodingKeys: CodingKey {
-        case year
-        case title
-        case opb
-        case soloistFirst
-        case soloistLast
+    init(year: String, title: String, opb: String, soloistFirst: String, soloistLast: String) {
+        self.year = year
+        self.title = title
+        self.opb = opb
+        self.soloistFirst = soloistFirst
+        self.soloistLast = soloistLast
     }
 }

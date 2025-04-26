@@ -12,6 +12,7 @@ struct HeightsmenRepApp: App {
     var body: some Scene {
         WindowGroup {
             SongListView()
+                .modelContainer(SongViewModel.preview)
         }
     }
 }
