@@ -19,7 +19,6 @@ enum SortOption: String, CaseIterable {
 struct SortedSongListView: View {
     @Query var songs: [Song]
     @State private var songVM = SongViewModel()
-    @State private var sheetIsPresented = false
     @Environment(\.modelContext) var modelContext
     let sortSelection: SortOption
     
@@ -59,11 +58,6 @@ struct SortedSongListView: View {
             .task {
                 songVM.loadJSONFromAssets(context: modelContext)
             }
-            .sheet(isPresented: $sheetIsPresented) {
-                NavigationStack {
-                    SongDetailView(song: Song(year: "", title: "", opb: "", soloistFirst: "", soloistLast: ""))
-                }
-            }
         }
     }
 }
@@ -91,6 +85,11 @@ struct SortedSongListView: View {
                                 }
                             }
                             .pickerStyle(.segmented)
+                        }
+                    }
+                    .sheet(isPresented: $sheetIsPresented) {
+                        NavigationStack {
+                            SongDetailView(song: Song(year: "", title: "", opb: "", soloistFirst: "", soloistLast: ""))
                         }
                     }
             }
